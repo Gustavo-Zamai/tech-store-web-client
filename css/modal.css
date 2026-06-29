@@ -1,0 +1,62 @@
+/* =============================================
+   TECH STORE — Modal Styles
+   ============================================= */
+
+/* ─── Modal de Confirmação ─── */
+#modal-confirm .modal {
+  max-width: 420px;
+}
+
+#modal-confirm p {
+  margin: 1rem 0;
+  color: var(--text-secondary);
+}
+
+#modal-confirm .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* ─── Modal de Configuração da API ─── */
+#modal-api-settings .modal {
+  max-width: 420px;
+}
+
+#modal-api-settings .form-group {
+  margin-bottom: 1rem;
+}
+
+#modal-api-settings .form-group label {
+  display: block;
+  font-size: .8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: .375rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+#modal-api-settings .form-control {
+  width: 100%;
+  padding: .625rem .875rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+#modal-api-settings .form-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+#modal-api-settings .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: 1rem;
+}

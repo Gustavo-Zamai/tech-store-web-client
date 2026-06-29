@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Store — Painel</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- ─── App shell ──────────────────────────── -->
+  <div class="app-shell">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">TS</div>
+        <div>
+          <div class="logo-text">Tech Store</div>
+          <div class="logo-sub">Sistema de Gestão</div>
+        </div>
+      </div>
+
+          <nav class="sidebar-nav">
+        <div class="nav-section-label">Geral</div>
+        <button class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </button>
+
+        <div class="nav-section-label">Operações</div>
+        <button class="nav-item" data-page="vendas">
+          <span class="nav-icon">🛒</span> Vendas
+        </button>
+        <button class="nav-item" data-page="produtos">
+          <span class="nav-icon">📦</span> Produtos
+        </button>
+        <button class="nav-item" data-page="clientes">
+          <span class="nav-icon">👤</span> Clientes
+        </button>
+
+        <div class="nav-section-label">Administração</div>
+        <button class="nav-item" data-page="funcionarios">
+          <span class="nav-icon">🧑‍💼</span> Funcionários
+        </button>
+        <button class="nav-item" data-page="empresas">
+          <span class="nav-icon">🏢</span> Empresas
+        </button>
+        <button class="nav-item" data-page="fornecedores">
+          <span class="nav-icon">🚚</span> Fornecedores
+        </button>
+        <button class="nav-item" data-page="categorias">
+          <span class="nav-icon">🏷️</span> Categorias
+        </button>
+      </nav>
+      
+      <!-- Footer do Sidebar -->
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">👤</div>
+          <div class="user-details">
+            <div class="user-name">Admin</div>
+            <div class="user-role">Administrador</div>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-logout" onclick="Toast.info('Logout em breve')">
+          <span class="icon">🚪</span> Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <div class="main-content">
+      
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+          <span class="topbar-title" id="topbar-title">Dashboard</span>
+        </div>
+        
+        <div class="topbar-actions">
+          <div class="api-indicator">
+            <span id="api-status-label">API</span>
+            <span class="api-dot offline" id="api-status-dot"></span>
+          </div>
+          <button class="btn-icon" id="btn-api-settings" title="Configurar API">⚙️</button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        
+        <!-- Views - cada view deve ser um container vazio que será preenchido pelo JavaScript -->
+        <div id="view-dashboard" class="view-page active"></div>
+        <div id="view-clientes" class="view-page"></div>
+        <div id="view-produtos" class="view-page"></div>
+        <div id="view-vendas" class="view-page"></div>
+        <div id="view-funcionarios" class="view-page"></div>
+        <div id="view-empresas" class="view-page"></div>
+        <div id="view-fornecedores" class="view-page"></div>
+        <div id="view-categorias" class="view-page"></div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOAST CONTAINER ─── -->
+  <div id="toast-container"></div>
+
+  <!-- ─── MODAL DE CONFIRMAÇÃO ─── -->
+  <div class="modal-overlay hidden" id="modal-confirm">
+    <div class="modal">
+      <button class="modal-close" onclick="Modal.close('modal-confirm')">✕</button>
+      <h2>Confirmar Exclusão</h2>
+      <p id="confirm-text">Tem certeza que deseja excluir este item?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="Modal.close('modal-confirm')">Cancelar</button>
+        <button class="btn btn-danger" id="confirm-ok">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL DE CONFIGURAÇÃO DA API ─── -->
+  <div class="modal-overlay hidden" id="modal-api-settings">
+    <div class="modal">
+      <button class="modal-close" onclick="Modal.close('modal-api-settings')">✕</button>
+      <h2>Configurar API</h2>
+      <div class="form-group">
+        <label>URL da API</label>
+        <input class="form-control" id="api-url-input" placeholder="http://localhost:8080" value="http://localhost:8080">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="Modal.close('modal-api-settings')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-save-api-url">Salvar</button>
+      </div>
+    </div>
+  </div>
+  <!-- ─── Scripts ─────────────────────────────── -->
+    <!-- Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "./js/": "./js/"
+      }
+    }
+  </script>
+
+  <!-- Scripts (ordem importa) -->
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script type="module" src="js/main.js"></script>
+  <script>
+    // Auth guard
+    if (!sessionStorage.getItem('ts_logged')) {
+      window.location.href = 'login.html';
+    }
+
+    // Populate user info
+    const username = sessionStorage.getItem('ts_user') || 'Admin';
+    document.getElementById('user-name').textContent = username;
+    document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
+
+    // Logout
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      sessionStorage.clear();
+      window.location.href = 'login.html';
+    });
+
+    // Boot app
+    Router.init();
+  </script>
+
+</body>
+</html>

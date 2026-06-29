@@ -1,0 +1,146 @@
+/* =============================================
+   TECH STORE — Componentes Reutilizáveis
+   ============================================= */
+
+/* ─── Badges de Situação ─── */
+.badge-status {
+  display: inline-block;
+  padding: .2em .6em;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.badge-status.active {
+  background: rgba(46,160,67,.15);
+  color: #3fb950;
+}
+
+.badge-status.inactive {
+  background: rgba(248,81,73,.15);
+  color: #f85149;
+}
+
+.badge-status.finalizada {
+  background: rgba(46,160,67,.15);
+  color: #3fb950;
+}
+
+.badge-status.cancelada {
+  background: rgba(248,81,73,.15);
+  color: #f85149;
+}
+
+/* ─── Estoque Badge ─── */
+.badge-stock {
+  display: inline-block;
+  padding: .2em .6em;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+.badge-stock.high {
+  background: rgba(46,160,67,.15);
+  color: #3fb950;
+}
+
+.badge-stock.medium {
+  background: rgba(210,153,34,.15);
+  color: #d29922;
+}
+
+.badge-stock.low {
+  background: rgba(248,81,73,.15);
+  color: #f85149;
+}
+
+/* ─── Grid de Ações ─── */
+.actions-grid {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Código ID ─── */
+.code-id {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.code-id.accent {
+  color: var(--accent);
+}
+
+/* ─── Texto Monetário ─── */
+.text-currency {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ─── Total da Venda ─── */
+.venda-total {
+  text-align: right;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--accent);
+  margin-top: .5rem;
+}
+
+/* ─── Itens da Venda ─── */
+.venda-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .5rem;
+  background: var(--bg-base);
+  border-radius: var(--radius-sm);
+  margin-bottom: .375rem;
+}
+
+.venda-item .nome {
+  flex: 1;
+  font-size: .875rem;
+}
+
+.venda-item .detalhes {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.venda-item .subtotal {
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 70px;
+  text-align: right;
+}
+
+/* ─── Input com ícone ─── */
+.input-with-icon {
+  display: flex;
+  gap: .5rem;
+  margin-top: .5rem;
+  margin-bottom: .75rem;
+}
+
+.input-with-icon select {
+  flex: 1;
+}
+
+.input-with-icon input[type="number"] {
+  width: 80px;
+}
+
+/* ─── Loading Overlay ─── */
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.loading-overlay .spinner {
+  margin-right: .75rem;
+}

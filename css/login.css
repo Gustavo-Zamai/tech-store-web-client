@@ -1,0 +1,121 @@
+/* =============================================
+   TECH STORE — Login Page
+   ============================================= */
+
+.login-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* background grid effect */
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,198,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,198,255,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* radial glow */
+.login-page::after {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,198,255,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.login-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+  box-shadow: var(--shadow-card);
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-logo-icon {
+  width: 56px; height: 56px;
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #000;
+  font-weight: 900;
+  margin-bottom: .875rem;
+  box-shadow: var(--shadow-glow);
+}
+
+.login-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -.02em;
+}
+
+.login-sub {
+  font-size: .875rem;
+  color: var(--text-secondary);
+  margin-top: .25rem;
+}
+
+.login-form { margin-top: 1.75rem; }
+
+.login-form .form-group { margin-bottom: 1.125rem; }
+
+.login-form .btn {
+  width: 100%;
+  justify-content: center;
+  padding: .75rem 1.5rem;
+  font-size: .9375rem;
+  margin-top: .5rem;
+}
+
+.login-hint {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: .8125rem;
+  color: var(--text-muted);
+}
+
+.login-hint code {
+  font-family: var(--font-mono);
+  background: var(--bg-card);
+  padding: .1em .4em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.login-error {
+  background: var(--danger-dim);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  padding: .625rem .875rem;
+  font-size: .875rem;
+  margin-bottom: 1rem;
+  display: none;
+}
+.login-error.visible { display: block; }
