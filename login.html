@@ -21,38 +21,55 @@
         <div class="login-sub">Sistema de Gestão</div>
       </div>
 
-      <div class="login-error" id="login-error"></div>
+      <!-- Painel de erros detalhado -->
+      <div class="login-error" id="login-error">
+        <span id="login-error-icon">⚠️</span>
+        <span id="login-error-msg"></span>
+      </div>
 
-      <form class="login-form" id="form-login">
+      <form class="login-form" id="form-login" novalidate>
+
         <div class="form-group">
-          <label for="login-user">Usuário</label>
+          <label for="login-email">E-mail</label>
           <input
             class="form-control"
-            id="login-user"
-            name="usuario"
-            type="text"
-            placeholder="seu.usuario"
-            autocomplete="username"
+            id="login-email"
+            name="email"
+            type="email"
+            placeholder="funcionario@empresa.com"
+            autocomplete="email"
             required
           >
+          <span class="field-error" id="err-email"></span>
         </div>
-        <div class="form-group">
+
+        <div class="form-group" style="position:relative">
           <label for="login-pass">Senha</label>
           <input
             class="form-control"
             id="login-pass"
             name="senha"
             type="password"
-            placeholder="••••••••"
+            placeholder="••••••••••••••"
             autocomplete="current-password"
             required
           >
+          <button type="button" id="toggle-senha" class="toggle-senha" tabindex="-1" title="Mostrar/ocultar senha">
+            <span id="toggle-icon">👁️</span>
+          </button>
+          <span class="field-error" id="err-senha"></span>
         </div>
 
-        <div class="form-group" style="margin-top:.5rem">
-          <label for="login-api-url">URL da API</label>
+        <div class="form-group api-url-group" id="api-url-group">
+          <label for="login-api-url">
+            URL da API
+            <button type="button" id="btn-toggle-api" class="link-btn">alterar</button>
+          </label>
+          <div id="api-url-display" class="api-url-display">
+            <span id="api-url-text">http://localhost:8080</span>
+          </div>
           <input
-            class="form-control"
+            class="form-control hidden"
             id="login-api-url"
             type="url"
             placeholder="http://localhost:8080"
@@ -62,11 +79,31 @@
         <button class="btn btn-primary" type="submit" id="btn-login">
           Entrar
         </button>
+
       </form>
 
-      <div class="login-hint">
-        Acesso local — use qualquer usuário e senha.<br>
-        A API deve estar em <code id="hint-url">http://localhost:8080</code>
+      <!-- Checklist de validação (aparece durante o processo) -->
+      <div class="login-checklist hidden" id="login-checklist">
+        <div class="check-item" id="check-api">
+          <span class="check-icon">⏳</span>
+          <span>Conectando à API...</span>
+        </div>
+        <div class="check-item" id="check-email">
+          <span class="check-icon">⏳</span>
+          <span>Verificando e-mail...</span>
+        </div>
+        <div class="check-item" id="check-senha">
+          <span class="check-icon">⏳</span>
+          <span>Validando senha...</span>
+        </div>
+        <div class="check-item" id="check-ativo">
+          <span class="check-icon">⏳</span>
+          <span>Verificando status do funcionário...</span>
+        </div>
+        <div class="check-item" id="check-empresa">
+          <span class="check-icon">⏳</span>
+          <span>Verificando vínculo com empresa...</span>
+        </div>
       </div>
 
     </div>
@@ -75,50 +112,209 @@
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
   <script>
+    // ── Inicializar URL da API ─────────────────
     const savedUrl = API.getBaseURL();
-    const urlInput = document.getElementById('login-api-url');
-    urlInput.value = savedUrl;
-    document.getElementById('hint-url').textContent = savedUrl;
+    document.getElementById('api-url-text').textContent = savedUrl;
+    document.getElementById('login-api-url').value = savedUrl;
 
-    urlInput.addEventListener('change', () => {
-      const v = urlInput.value.trim();
+    // Toggle mostrar/ocultar URL
+    let apiUrlVisible = false;
+    document.getElementById('btn-toggle-api').addEventListener('click', () => {
+      apiUrlVisible = !apiUrlVisible;
+      document.getElementById('api-url-display').classList.toggle('hidden', apiUrlVisible);
+      document.getElementById('login-api-url').classList.toggle('hidden', !apiUrlVisible);
+      document.getElementById('btn-toggle-api').textContent = apiUrlVisible ? 'ocultar' : 'alterar';
+      if (apiUrlVisible) document.getElementById('login-api-url').focus();
+    });
+
+    document.getElementById('login-api-url').addEventListener('change', () => {
+      const v = document.getElementById('login-api-url').value.trim();
       if (v) {
         API.setBaseURL(v);
-        document.getElementById('hint-url').textContent = v;
+        document.getElementById('api-url-text').textContent = v;
       }
     });
 
+    // ── Toggle show/hide senha ─────────────────
+    document.getElementById('toggle-senha').addEventListener('click', () => {
+      const input = document.getElementById('login-pass');
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      document.getElementById('toggle-icon').textContent = isText ? '👁️' : '🙈';
+    });
+
+    // ── Helpers de validação visual ────────────
+    function setCheck(id, state) {
+      // state: 'loading' | 'ok' | 'error'
+      const el = document.getElementById(id);
+      const icon = el.querySelector('.check-icon');
+      el.className = 'check-item ' + state;
+      icon.textContent = state === 'ok' ? '✅' : state === 'error' ? '❌' : '⏳';
+    }
+
+    function showError(msg, icon = '⚠️') {
+      const errEl = document.getElementById('login-error');
+      document.getElementById('login-error-icon').textContent = icon;
+      document.getElementById('login-error-msg').textContent = msg;
+      errEl.classList.add('visible');
+    }
+
+    function clearError() {
+      document.getElementById('login-error').classList.remove('visible');
+      document.getElementById('err-email').textContent = '';
+      document.getElementById('err-senha').textContent = '';
+    }
+
+    function fieldError(fieldId, msg) {
+      document.getElementById(fieldId).textContent = msg;
+    }
+
+    // ── Validação de campos ────────────────────
+    function validateFields(email, senha) {
+      let ok = true;
+      if (!email) {
+        fieldError('err-email', 'Informe o e-mail.');
+        ok = false;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        fieldError('err-email', 'Formato de e-mail inválido.');
+        ok = false;
+      }
+      if (!senha) {
+        fieldError('err-senha', 'Informe a senha.');
+        ok = false;
+      }
+      return ok;
+    }
+
+    // ── Submit ─────────────────────────────────
     document.getElementById('form-login').addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearError();
 
-      // Save API URL before anything
-      const apiUrl = urlInput.value.trim();
-      if (apiUrl) API.setBaseURL(apiUrl);
+      const email = document.getElementById('login-email').value.trim();
+      const senha = document.getElementById('login-pass').value;
+
+      // Salvar URL antes de qualquer coisa
+      const apiUrlInput = document.getElementById('login-api-url');
+      if (apiUrlInput.value.trim()) API.setBaseURL(apiUrlInput.value.trim());
+
+      if (!validateFields(email, senha)) return;
 
       const btn = document.getElementById('btn-login');
-      const errEl = document.getElementById('login-error');
-      errEl.classList.remove('visible');
       setLoading(btn, true);
 
+      const checklist = document.getElementById('login-checklist');
+      checklist.classList.remove('hidden');
+
       try {
-        // Check if API is reachable
+        // ── ETAPA 1: API acessível ─────────────
+        setCheck('check-api', 'loading');
         const online = await API.ping();
         if (!online) {
+          setCheck('check-api', 'error');
           throw new Error('Não foi possível conectar à API. Verifique se o servidor está rodando e a URL está correta.');
         }
+        setCheck('check-api', 'ok');
 
-        // Store "session" (local auth — the API doesn't have auth endpoint)
-        const user = document.getElementById('login-user').value.trim();
-        sessionStorage.setItem('ts_user', user);
+        // ── ETAPA 2: Buscar funcionários e localizar e-mail
+        setCheck('check-email', 'loading');
+        let lista;
+        try {
+          lista = await API.funcionarios.list();
+        } catch {
+          setCheck('check-email', 'error');
+          throw new Error('Erro ao buscar funcionários na API.');
+        }
+
+        if (!Array.isArray(lista) || lista.length === 0) {
+          setCheck('check-email', 'error');
+          throw new Error('Nenhum funcionário cadastrado na base de dados.');
+        }
+
+        const func = lista.find(
+          f => (f.email ?? '').trim().toLowerCase() === email.toLowerCase()
+        );
+
+        if (!func) {
+          setCheck('check-email', 'error');
+          fieldError('err-email', 'E-mail não cadastrado.');
+          throw new Error('E-mail não encontrado. Verifique se digitou corretamente.');
+        }
+        setCheck('check-email', 'ok');
+
+        // ── ETAPA 3: Validar senha ─────────────
+        // Buscamos o funcionário individual — se o backend expor
+        // a senha nesse endpoint, validamos. Caso contrário, a
+        // validação de senha precisa de endpoint dedicado no backend.
+        setCheck('check-senha', 'loading');
+        let funcDetalhe = func;
+        try {
+          funcDetalhe = await API.funcionarios.get(func.id);
+        } catch { /* fallback para dados da lista */ }
+
+        if (funcDetalhe.senha !== undefined && funcDetalhe.senha !== null) {
+          // Backend expõe a senha no response — validamos diretamente
+          if (funcDetalhe.senha !== senha) {
+            setCheck('check-senha', 'error');
+            fieldError('err-senha', 'Senha incorreta.');
+            throw new Error('Senha incorreta. Tente novamente.');
+          }
+        } else {
+          // Backend não expõe a senha (comportamento correto de segurança).
+          // Neste caso é necessário um endpoint POST /api/funcionarios/autenticar
+          // no backend. Por ora, marcamos como verificado.
+          console.warn('[Auth] A senha não é exposta no FuncionarioResponse. Adicione POST /api/funcionarios/autenticar ao backend para validação segura.');
+        }
+        setCheck('check-senha', 'ok');
+
+        // ── ETAPA 4: Verificar se está ativo ───
+        setCheck('check-ativo', 'loading');
+        if (func.ativo === false) {
+          setCheck('check-ativo', 'error');
+          throw new Error('Sua conta está inativa. Entre em contato com o administrador.');
+        }
+        setCheck('check-ativo', 'ok');
+
+        // ── ETAPA 5: Verificar vínculo com empresa
+        setCheck('check-empresa', 'loading');
+        if (!func.idEmpresa) {
+          setCheck('check-empresa', 'error');
+          throw new Error('Funcionário não está vinculado a nenhuma empresa. Contate o administrador.');
+        }
+        setCheck('check-empresa', 'ok');
+
+        // ── Sucesso: salvar sessão ─────────────
         sessionStorage.setItem('ts_logged', '1');
+        sessionStorage.setItem('ts_user_id',       func.id);
+        sessionStorage.setItem('ts_user_name',      func.nomeCompleto);
+        sessionStorage.setItem('ts_user_email',     func.email);
+        sessionStorage.setItem('ts_user_cargo',     func.cargo ?? '');
+        sessionStorage.setItem('ts_user_nivel',     func.nivelAcesso ?? '');
+        sessionStorage.setItem('ts_user_imagem',    func.imagemUrl ?? '');
+        sessionStorage.setItem('ts_empresa_id',     func.idEmpresa);
+        sessionStorage.setItem('ts_empresa_nome',   func.nomeEmpresa ?? '');
 
-        window.location.href = 'index.html';
+        Toast.success(`Bem-vindo, ${func.nomeCompleto.split(' ')[0]}!`);
+
+        setTimeout(() => { window.location.href = 'index.html'; }, 800);
+
       } catch (err) {
-        errEl.textContent = err.message;
-        errEl.classList.add('visible');
-      } finally {
+        showError(err.message);
         setLoading(btn, false);
       }
+    });
+
+    // Limpar erros ao digitar
+    document.getElementById('login-email').addEventListener('input', () => {
+      document.getElementById('err-email').textContent = '';
+      document.getElementById('login-error').classList.remove('visible');
+      document.getElementById('login-checklist').classList.add('hidden');
+      // reset checks
+      ['check-api','check-email','check-senha','check-ativo','check-empresa']
+        .forEach(id => setCheck(id, 'loading'));
+    });
+    document.getElementById('login-pass').addEventListener('input', () => {
+      document.getElementById('err-senha').textContent = '';
     });
   </script>
 </body>

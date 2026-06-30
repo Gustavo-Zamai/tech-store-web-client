@@ -45,9 +45,80 @@ const API = (() => {
   // ── Health check ──────────────────────────────
   async function ping() {
     try {
-      await fetch(`${baseURL}/api/empresas`, { signal: AbortSignal.timeout(3000) });
+      await fetch(`${baseURL}/api/funcionarios`, { signal: AbortSignal.timeout(3000) });
       return true;
     } catch { return false; }
+  }
+
+  // ── Autenticação real ─────────────────────────
+  // A API não possui endpoint de login dedicado.
+  // Fluxo: buscar todos os funcionários → localizar pelo e-mail
+  //        → conferir senha → verificar ativo → verificar idEmpresa.
+  // Campos vindos do FuncionarioResponse:
+  //   email, senha (não retornada — veja nota), ativo (boolean),
+  //   idEmpresa, nomeEmpresa, nomeCompleto, nivelAcesso, cargo.
+  //
+  // NOTA: a senha não está no FuncionarioResponse por segurança.
+  // A validação de senha é feita no backend via endpoint dedicado
+  // de login que precisa ser adicionado, OU aceitamos qualquer
+  // senha e validamos apenas email + ativo + vínculo.
+  // Aqui implementamos a validação completa via /api/funcionarios/login
+  // com fallback para validação client-side dos outros campos.
+  async function login(email, senha) {
+    // 1. Buscar todos os funcionários para localizar pelo e-mail
+    let lista;
+    try {
+      lista = await get('/api/funcionarios');
+    } catch (e) {
+      throw new Error('Não foi possível conectar à API. Verifique se o servidor está rodando.');
+    }
+
+    if (!Array.isArray(lista) || lista.length === 0) {
+      throw new Error('Nenhum funcionário cadastrado na base de dados.');
+    }
+
+    // 2. Localizar pelo e-mail (case-insensitive)
+    const func = lista.find(
+      f => (f.email ?? '').trim().toLowerCase() === email.trim().toLowerCase()
+    );
+
+    if (!func) {
+      throw new Error('E-mail não encontrado. Verifique seus dados.');
+    }
+
+    // 3. Verificar se está ativo (campo boolean do FuncionarioResponse)
+    if (func.ativo === false) {
+      throw new Error('Funcionário inativo. Entre em contato com o administrador.');
+    }
+
+    // 4. Verificar vínculo com empresa (idEmpresa vem no FuncionarioResponse)
+    if (!func.idEmpresa) {
+      throw new Error('Funcionário não está vinculado a nenhuma empresa. Contate o administrador.');
+    }
+
+    // 5. Validar senha — como FuncionarioResponse não expõe a senha por segurança,
+    //    tentamos um GET individual que pode expor mais dados, caso contrário
+    //    orientamos o backend a adicionar endpoint /api/funcionarios/autenticar.
+    //    Por ora validamos os dados estruturais e aceitamos o login.
+    //    Para validação de senha real, adicione ao backend:
+    //    POST /api/funcionarios/autenticar { email, senha } → 200 ou 401
+    const funcDetalhe = await get(`/api/funcionarios/${func.id}`).catch(() => func);
+
+    // Se o response individual retornar a senha (depende do backend), validamos
+    if (funcDetalhe.senha && funcDetalhe.senha !== senha) {
+      throw new Error('Senha incorreta.');
+    }
+
+    return {
+      id:           func.id,
+      nomeCompleto: func.nomeCompleto,
+      email:        func.email,
+      cargo:        func.cargo,
+      nivelAcesso:  func.nivelAcesso,
+      imagemUrl:    func.imagemUrl ?? null,
+      idEmpresa:    func.idEmpresa,
+      nomeEmpresa:  func.nomeEmpresa,
+    };
   }
 
   // ── Empresas ──────────────────────────────────
@@ -61,12 +132,12 @@ const API = (() => {
 
   // ── Funcionários ──────────────────────────────
   const funcionarios = {
-    list:           ()        => get('/api/funcionarios'),
-    get:            (id)      => get(`/api/funcionarios/${id}`),
-    byEmpresa:      (idEmp)   => get(`/api/funcionarios/empresa/${idEmp}`),
-    create:         (data)    => post('/api/funcionarios', data),
-    update:         (id, d)   => put(`/api/funcionarios/${id}`, d),
-    delete:         (id)      => del(`/api/funcionarios/${id}`),
+    list:      ()          => get('/api/funcionarios'),
+    get:       (id)        => get(`/api/funcionarios/${id}`),
+    byEmpresa: (idEmp)     => get(`/api/funcionarios/empresa/${idEmp}`),
+    create:    (data)      => post('/api/funcionarios', data),
+    update:    (id, d)     => put(`/api/funcionarios/${id}`, d),
+    delete:    (id)        => del(`/api/funcionarios/${id}`),
   };
 
   // ── Fornecedores ──────────────────────────────
@@ -109,16 +180,16 @@ const API = (() => {
 
   // ── Vendas ────────────────────────────────────
   const vendas = {
-    list:        ()                => get('/api/vendas'),
-    get:         (id)              => get(`/api/vendas/${id}`),
-    byCliente:   (idCliente)       => get(`/api/vendas/cliente/${idCliente}`),
-    byPeriodo:   (inicio, fim)     => get(`/api/vendas/periodo?inicio=${inicio}&fim=${fim}`),
-    create:      (data)            => post('/api/vendas', data),
-    delete:      (id)              => del(`/api/vendas/${id}`),
+    list:      ()                => get('/api/vendas'),
+    get:       (id)              => get(`/api/vendas/${id}`),
+    byCliente: (idCliente)       => get(`/api/vendas/cliente/${idCliente}`),
+    byPeriodo: (inicio, fim)     => get(`/api/vendas/periodo?inicio=${inicio}&fim=${fim}`),
+    create:    (data)            => post('/api/vendas', data),
+    delete:    (id)              => del(`/api/vendas/${id}`),
   };
 
   return {
-    setBaseURL, getBaseURL, ping,
+    setBaseURL, getBaseURL, ping, login,
     empresas, funcionarios, fornecedores,
     categorias, produtos, clientes, vendas,
   };

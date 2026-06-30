@@ -28,9 +28,10 @@
         </div>
       </div>
 
-          <nav class="sidebar-nav">
+      <nav class="sidebar-nav">
+
         <div class="nav-section-label">Geral</div>
-        <button class="nav-item active" data-page="dashboard">
+        <button class="nav-item" data-page="dashboard">
           <span class="nav-icon">📊</span> Dashboard
         </button>
 
@@ -58,122 +59,150 @@
         <button class="nav-item" data-page="categorias">
           <span class="nav-icon">🏷️</span> Categorias
         </button>
+
       </nav>
-      
-      <!-- Footer do Sidebar -->
+
       <div class="sidebar-footer">
         <div class="user-info">
-          <div class="user-avatar">👤</div>
-          <div class="user-details">
-            <div class="user-name">Admin</div>
+          <div class="user-avatar" id="user-avatar">?</div>
+          <div>
+            <div class="user-name" id="user-name">Usuário</div>
             <div class="user-role">Administrador</div>
           </div>
         </div>
-        <button class="btn btn-danger btn-logout" onclick="Toast.info('Logout em breve')">
-          <span class="icon">🚪</span> Sair
+        <button class="btn btn-logout btn-sm" id="btn-logout">
+          🚪 Sair
         </button>
       </div>
     </aside>
 
-    <!-- ─── MAIN CONTENT ─── -->
+    <!-- Main content -->
     <div class="main-content">
-      
+
       <!-- Topbar -->
       <header class="topbar">
-        <div class="topbar-left">
+        <div style="display:flex;align-items:center;gap:.75rem">
           <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
           <span class="topbar-title" id="topbar-title">Dashboard</span>
         </div>
-        
         <div class="topbar-actions">
           <div class="api-indicator">
-            <span id="api-status-label">API</span>
-            <span class="api-dot offline" id="api-status-dot"></span>
+            <div class="api-dot" id="api-status-dot"></div>
+            <span id="api-status-label">verificando...</span>
           </div>
-          <button class="btn-icon" id="btn-api-settings" title="Configurar API">⚙️</button>
+          <button class="btn btn-secondary btn-sm" id="btn-api-settings" title="Configurar URL da API">
+            ⚙️ API
+          </button>
         </div>
       </header>
 
-      <!-- Page Content -->
-      <div class="page-content">
-        
-        <!-- Views - cada view deve ser um container vazio que será preenchido pelo JavaScript -->
-        <div id="view-dashboard" class="view-page active"></div>
-        <div id="view-clientes" class="view-page"></div>
-        <div id="view-produtos" class="view-page"></div>
-        <div id="view-vendas" class="view-page"></div>
-        <div id="view-funcionarios" class="view-page"></div>
-        <div id="view-empresas" class="view-page"></div>
-        <div id="view-fornecedores" class="view-page"></div>
-        <div id="view-categorias" class="view-page"></div>
-        
-      </div>
+      <!-- Pages -->
+      <main class="page-content">
+
+        <div class="view-page" id="view-dashboard"></div>
+        <div class="view-page" id="view-produtos"></div>
+        <div class="view-page" id="view-clientes"></div>
+        <div class="view-page" id="view-vendas"></div>
+        <div class="view-page" id="view-funcionarios"></div>
+        <div class="view-page" id="view-empresas"></div>
+        <div class="view-page" id="view-fornecedores"></div>
+        <div class="view-page" id="view-categorias"></div>
+
+      </main>
     </div>
   </div>
 
-  <!-- ─── TOAST CONTAINER ─── -->
-  <div id="toast-container"></div>
-
-  <!-- ─── MODAL DE CONFIRMAÇÃO ─── -->
+  <!-- ─── Confirm delete modal ────────────────── -->
   <div class="modal-overlay hidden" id="modal-confirm">
-    <div class="modal">
-      <button class="modal-close" onclick="Modal.close('modal-confirm')">✕</button>
-      <h2>Confirmar Exclusão</h2>
-      <p id="confirm-text">Tem certeza que deseja excluir este item?</p>
-      <div class="modal-actions">
+    <div class="modal" style="max-width:400px">
+      <h2 style="margin-bottom:.75rem">⚠️ Confirmar exclusão</h2>
+      <p id="confirm-text" style="color:var(--text-secondary);margin-bottom:1.5rem;font-size:.9375rem"></p>
+      <div style="display:flex;justify-content:flex-end;gap:.75rem">
         <button class="btn btn-secondary" onclick="Modal.close('modal-confirm')">Cancelar</button>
         <button class="btn btn-danger" id="confirm-ok">Excluir</button>
       </div>
     </div>
   </div>
 
-  <!-- ─── MODAL DE CONFIGURAÇÃO DA API ─── -->
+  <!-- ─── API settings modal ──────────────────── -->
   <div class="modal-overlay hidden" id="modal-api-settings">
-    <div class="modal">
+    <div class="modal" style="max-width:420px">
       <button class="modal-close" onclick="Modal.close('modal-api-settings')">✕</button>
-      <h2>Configurar API</h2>
+      <h2>Configurações da API</h2>
+      <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:1.25rem">
+        Informe a URL base do servidor backend.
+      </p>
       <div class="form-group">
         <label>URL da API</label>
-        <input class="form-control" id="api-url-input" placeholder="http://localhost:8080" value="http://localhost:8080">
+        <input class="form-control" id="api-url-input" type="url" placeholder="http://localhost:8080">
       </div>
-      <div class="modal-actions">
+      <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
         <button class="btn btn-secondary" onclick="Modal.close('modal-api-settings')">Cancelar</button>
         <button class="btn btn-primary" id="btn-save-api-url">Salvar</button>
       </div>
     </div>
   </div>
-  <!-- ─── Scripts ─────────────────────────────── -->
-    <!-- Import Map -->
-  <script type="importmap">
-    {
-      "imports": {
-        "./js/": "./js/"
-      }
-    }
-  </script>
 
-  <!-- Scripts (ordem importa) -->
+  <!-- ─── Scripts ─────────────────────────────── -->
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
-  <script type="module" src="js/main.js"></script>
+
+  <!-- Pages — uma entidade por arquivo -->
+  <script src="js/pages/dashboard.js"></script>
+  <script src="js/pages/produtos.js"></script>
+  <script src="js/pages/clientes.js"></script>
+  <script src="js/pages/vendas.js"></script>
+  <script src="js/pages/funcionarios.js"></script>
+  <script src="js/pages/empresas.js"></script>
+  <script src="js/pages/fornecedores.js"></script>
+  <script src="js/pages/categorias.js"></script>
+
+  <!-- Índice de páginas + roteador (devem vir após os controllers) -->
+  <script src="js/pages.js"></script>
+  <script src="js/router.js"></script>
   <script>
-    // Auth guard
+    // ── Auth guard ────────────────────────────
     if (!sessionStorage.getItem('ts_logged')) {
       window.location.href = 'login.html';
     }
 
-    // Populate user info
-    const username = sessionStorage.getItem('ts_user') || 'Admin';
-    document.getElementById('user-name').textContent = username;
-    document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
+    // ── Preencher dados reais do funcionário ──
+    const nomeCompleto = sessionStorage.getItem('ts_user_name') || 'Usuário';
+    const cargo        = sessionStorage.getItem('ts_user_cargo') || '';
+    const nivelAcesso  = sessionStorage.getItem('ts_user_nivel') || '';
+    const imagemUrl    = sessionStorage.getItem('ts_user_imagem') || '';
+    const empresaNome  = sessionStorage.getItem('ts_empresa_nome') || '';
 
-    // Logout
+    const primeiroNome = nomeCompleto.split(' ')[0];
+    const iniciais     = nomeCompleto.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+
+    // Avatar: imagem real ou iniciais
+    const avatarEl = document.getElementById('user-avatar');
+    if (imagemUrl) {
+      avatarEl.innerHTML = '<img src="' + imagemUrl + '" alt="' + primeiroNome + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+    } else {
+      avatarEl.textContent = iniciais;
+    }
+
+    document.getElementById('user-name').textContent = primeiroNome;
+
+    // Sub-info: cargo e empresa
+    const userRoleEl = document.querySelector('.user-role');
+    if (userRoleEl) {
+      userRoleEl.textContent = cargo
+        ? (empresaNome ? cargo + ' · ' + empresaNome : cargo)
+        : (empresaNome || nivelAcesso || 'Funcionário');
+    }
+
+    avatarEl.title = nomeCompleto + '\n' + cargo;
+
+    // ── Logout ────────────────────────────────
     document.getElementById('btn-logout').addEventListener('click', () => {
       sessionStorage.clear();
       window.location.href = 'login.html';
     });
 
-    // Boot app
+    // ── Boot ──────────────────────────────────
     Router.init();
   </script>
 

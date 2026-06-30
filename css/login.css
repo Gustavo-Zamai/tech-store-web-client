@@ -119,3 +119,80 @@
   display: none;
 }
 .login-error.visible { display: block; }
+
+/* ── Field-level errors ──────────────────────── */
+.field-error {
+  display: block;
+  font-size: .75rem;
+  color: var(--danger);
+  margin-top: .25rem;
+  min-height: 1rem;
+}
+
+/* ── Show/hide senha button ─────────────────── */
+.toggle-senha {
+  position: absolute;
+  right: .75rem;
+  bottom: .625rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+.toggle-senha:hover { color: var(--text-primary); }
+
+/* ── API URL inline ──────────────────────────── */
+.api-url-display {
+  font-size: .8125rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  padding: .375rem .5rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: .75rem;
+  cursor: pointer;
+  padding: 0 .25rem;
+  text-decoration: underline;
+  margin-left: .25rem;
+}
+
+/* ── Validation checklist ────────────────────── */
+.login-checklist {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  font-size: .8125rem;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+
+.check-item .check-icon {
+  font-size: .9rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.check-item.ok    { color: #3fb950; }
+.check-item.error { color: var(--danger); }
+.check-item.loading { color: var(--text-muted); }
