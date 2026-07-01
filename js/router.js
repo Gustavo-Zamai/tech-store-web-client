@@ -2,7 +2,6 @@
 /* =============================================
    TECH STORE — Router / Navigation
    ============================================= */
-
 const Router = (() => {
 
   // Mapa de rotas: chave → { label, fn }
