@@ -1,62 +1,95 @@
 /* =============================================
-   TECH STORE — Modal Styles
+   TECH STORE — Modals
    ============================================= */
 
-/* ─── Modal de Confirmação ─── */
-#modal-confirm .modal {
-  max-width: 420px;
-}
-
-#modal-confirm p {
-  margin: 1rem 0;
-  color: var(--text-secondary);
-}
-
-#modal-confirm .modal-actions {
+/* ─── Overlay ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 500;
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeOverlay .2s ease;
+}
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* ─── Modal de Configuração da API ─── */
-#modal-api-settings .modal {
-  max-width: 420px;
-}
-
-#modal-api-settings .form-group {
-  margin-bottom: 1rem;
-}
-
-#modal-api-settings .form-group label {
-  display: block;
-  font-size: .8125rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: .375rem;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-#modal-api-settings .form-control {
+/* ─── Modal box ─── */
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
   width: 100%;
-  padding: .625rem .875rem;
-  background: var(--bg-base);
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 24px 64px rgba(0,0,0,.55);
+  animation: slideModal .22s ease;
+}
+@keyframes slideModal {
+  from { transform: translateY(16px) scale(.97); opacity: 0; }
+  to   { transform: translateY(0) scale(1);      opacity: 1; }
+}
+
+.modal h2 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  padding-right: 2rem;
+}
+
+/* ─── Close button ─── */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--bg-hover);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  transition: border-color var(--transition), box-shadow var(--transition);
-  outline: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: .875rem;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.modal-close:hover {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
-#modal-api-settings .form-control:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-
-#modal-api-settings .modal-actions {
+/* ─── Modal footer ─── */
+.modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: .75rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ─── Form inside modal ─── */
+.modal .form-group         { margin-bottom: 1rem; }
+.modal .form-group:last-of-type { margin-bottom: 0; }
+
+/* ─── Confirm modal specific ─── */
+.modal-confirm-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: .75rem;
 }

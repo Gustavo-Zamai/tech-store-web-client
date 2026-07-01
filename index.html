@@ -12,14 +12,13 @@
 </head>
 <body>
 
-  <!-- Toast container -->
   <div id="toast-container"></div>
 
-  <!-- ─── App shell ──────────────────────────── -->
   <div class="app-shell">
 
-    <!-- Sidebar -->
+    <!-- ══════════════ SIDEBAR ══════════════ -->
     <aside class="sidebar">
+
       <div class="sidebar-logo">
         <div class="logo-icon">TS</div>
         <div>
@@ -29,7 +28,6 @@
       </div>
 
       <nav class="sidebar-nav">
-
         <div class="nav-section-label">Geral</div>
         <button class="nav-item" data-page="dashboard">
           <span class="nav-icon">📊</span> Dashboard
@@ -59,24 +57,22 @@
         <button class="nav-item" data-page="categorias">
           <span class="nav-icon">🏷️</span> Categorias
         </button>
-
       </nav>
 
       <div class="sidebar-footer">
         <div class="user-info">
           <div class="user-avatar" id="user-avatar">?</div>
-          <div>
+          <div style="min-width:0">
             <div class="user-name" id="user-name">Usuário</div>
-            <div class="user-role">Administrador</div>
+            <div class="user-role" id="user-role">Carregando...</div>
           </div>
         </div>
-        <button class="btn btn-logout btn-sm" id="btn-logout">
-          🚪 Sair
-        </button>
+        <button class="btn btn-logout btn-sm" id="btn-logout">🚪 Sair</button>
       </div>
+
     </aside>
 
-    <!-- Main content -->
+    <!-- ══════════════ MAIN ══════════════ -->
     <div class="main-content">
 
       <!-- Topbar -->
@@ -90,15 +86,12 @@
             <div class="api-dot" id="api-status-dot"></div>
             <span id="api-status-label">verificando...</span>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-api-settings" title="Configurar URL da API">
-            ⚙️ API
-          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-api-settings" title="Configurar URL da API">⚙️ API</button>
         </div>
       </header>
 
-      <!-- Pages -->
+      <!-- Views — cada página renderiza dentro do seu div -->
       <main class="page-content">
-
         <div class="view-page" id="view-dashboard"></div>
         <div class="view-page" id="view-produtos"></div>
         <div class="view-page" id="view-clientes"></div>
@@ -107,47 +100,48 @@
         <div class="view-page" id="view-empresas"></div>
         <div class="view-page" id="view-fornecedores"></div>
         <div class="view-page" id="view-categorias"></div>
-
       </main>
+
     </div>
   </div>
 
-  <!-- ─── Confirm delete modal ────────────────── -->
+  <!-- ══════════════ MODAL: Confirmar exclusão ══════════════ -->
   <div class="modal-overlay hidden" id="modal-confirm">
-    <div class="modal" style="max-width:400px">
-      <h2 style="margin-bottom:.75rem">⚠️ Confirmar exclusão</h2>
-      <p id="confirm-text" style="color:var(--text-secondary);margin-bottom:1.5rem;font-size:.9375rem"></p>
-      <div style="display:flex;justify-content:flex-end;gap:.75rem">
+    <div class="modal" style="max-width:420px">
+      <span class="modal-confirm-icon">🗑️</span>
+      <h2>Confirmar exclusão</h2>
+      <p id="confirm-text" style="color:var(--text-secondary);font-size:.9375rem;line-height:1.6;margin-bottom:0"></p>
+      <div class="modal-footer">
         <button class="btn btn-secondary" onclick="Modal.close('modal-confirm')">Cancelar</button>
-        <button class="btn btn-danger" id="confirm-ok">Excluir</button>
+        <button class="btn btn-danger"    id="confirm-ok">Excluir</button>
       </div>
     </div>
   </div>
 
-  <!-- ─── API settings modal ──────────────────── -->
+  <!-- ══════════════ MODAL: Configurações da API ══════════════ -->
   <div class="modal-overlay hidden" id="modal-api-settings">
     <div class="modal" style="max-width:420px">
       <button class="modal-close" onclick="Modal.close('modal-api-settings')">✕</button>
-      <h2>Configurações da API</h2>
+      <h2>⚙️ Configurações da API</h2>
       <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:1.25rem">
-        Informe a URL base do servidor backend.
+        Informe a URL base do servidor Spring Boot.
       </p>
       <div class="form-group">
         <label>URL da API</label>
         <input class="form-control" id="api-url-input" type="url" placeholder="http://localhost:8080">
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
+      <div class="modal-footer">
         <button class="btn btn-secondary" onclick="Modal.close('modal-api-settings')">Cancelar</button>
-        <button class="btn btn-primary" id="btn-save-api-url">Salvar</button>
+        <button class="btn btn-primary"   id="btn-save-api-url">Salvar</button>
       </div>
     </div>
   </div>
 
-  <!-- ─── Scripts ─────────────────────────────── -->
+  <!-- ══════════════ SCRIPTS ══════════════ -->
   <script src="js/api.js"></script>
   <script src="js/ui.js"></script>
 
-  <!-- Pages — uma entidade por arquivo -->
+  <!-- Controllers — um arquivo por entidade -->
   <script src="js/pages/dashboard.js"></script>
   <script src="js/pages/produtos.js"></script>
   <script src="js/pages/clientes.js"></script>
@@ -157,52 +151,59 @@
   <script src="js/pages/fornecedores.js"></script>
   <script src="js/pages/categorias.js"></script>
 
-  <!-- Índice de páginas + roteador (devem vir após os controllers) -->
+  <!-- Índice (Pages) e Router — devem vir APÓS os controllers -->
   <script src="js/pages.js"></script>
   <script src="js/router.js"></script>
+
   <script>
-    // ── Auth guard ────────────────────────────
+    // ── Guard: redirecionar se não autenticado ────────────────
     if (!sessionStorage.getItem('ts_logged')) {
       window.location.href = 'login.html';
     }
 
-    // ── Preencher dados reais do funcionário ──
-    const nomeCompleto = sessionStorage.getItem('ts_user_name') || 'Usuário';
-    const cargo        = sessionStorage.getItem('ts_user_cargo') || '';
-    const nivelAcesso  = sessionStorage.getItem('ts_user_nivel') || '';
-    const imagemUrl    = sessionStorage.getItem('ts_user_imagem') || '';
-    const empresaNome  = sessionStorage.getItem('ts_empresa_nome') || '';
+    // ── Preencher dados do funcionário logado na sidebar ──────
+    (function populateUser() {
+      const nome      = sessionStorage.getItem('ts_user_name')  || 'Usuário';
+      const cargo     = sessionStorage.getItem('ts_user_cargo') || '';
+      const nivel     = sessionStorage.getItem('ts_user_nivel') || '';
+      const imagem    = sessionStorage.getItem('ts_user_imagem')|| '';
+      const empresa   = sessionStorage.getItem('ts_empresa_nome')|| '';
 
-    const primeiroNome = nomeCompleto.split(' ')[0];
-    const iniciais     = nomeCompleto.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+      const primeiro  = nome.split(' ')[0];
+      const iniciais  = nome.split(' ').filter(Boolean).map(p => p[0]).slice(0,2).join('').toUpperCase();
 
-    // Avatar: imagem real ou iniciais
-    const avatarEl = document.getElementById('user-avatar');
-    if (imagemUrl) {
-      avatarEl.innerHTML = '<img src="' + imagemUrl + '" alt="' + primeiroNome + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
-    } else {
-      avatarEl.textContent = iniciais;
-    }
+      // Avatar: foto real ou iniciais
+      const avatarEl = document.getElementById('user-avatar');
+      if (imagem) {
+        avatarEl.innerHTML = `<img src="${imagem}" alt="${primeiro}"
+          style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+      } else {
+        avatarEl.textContent = iniciais || '?';
+      }
+      avatarEl.title = nome;
 
-    document.getElementById('user-name').textContent = primeiroNome;
+      document.getElementById('user-name').textContent = primeiro;
 
-    // Sub-info: cargo e empresa
-    const userRoleEl = document.querySelector('.user-role');
-    if (userRoleEl) {
-      userRoleEl.textContent = cargo
-        ? (empresaNome ? cargo + ' · ' + empresaNome : cargo)
-        : (empresaNome || nivelAcesso || 'Funcionário');
-    }
+      // Role: cargo · empresa (ou nível de acesso como fallback)
+      const roleEl = document.getElementById('user-role');
+      if (cargo && empresa) {
+        roleEl.textContent = `${cargo} · ${empresa}`;
+      } else if (cargo) {
+        roleEl.textContent = cargo;
+      } else if (nivel) {
+        roleEl.textContent = nivel;
+      } else {
+        roleEl.textContent = 'Funcionário';
+      }
+    })();
 
-    avatarEl.title = nomeCompleto + '\n' + cargo;
-
-    // ── Logout ────────────────────────────────
+    // ── Logout ────────────────────────────────────────────────
     document.getElementById('btn-logout').addEventListener('click', () => {
       sessionStorage.clear();
       window.location.href = 'login.html';
     });
 
-    // ── Boot ──────────────────────────────────
+    // ── Inicializar roteador ──────────────────────────────────
     Router.init();
   </script>
 
