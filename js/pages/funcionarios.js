@@ -17,8 +17,17 @@ async function pageFuncionarios() {
     </div>
     <div class="table-wrapper">
       <table id="table-funcionarios">
-        <thead><tr><th>#</th><th>Nome</th><th>CPF</th><th>Cargo</th><th>Email</th><th>Empresa</th><th>Ações</th></tr></thead>
-        <tbody><tr><td colspan="7" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
+        <thead><tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>CPF</th>
+          <th>Cargo</th>
+          <th>Email</th>
+          <th>Empresa</th>
+          <th>Situação</th>
+          <th>Ações</th>
+        </tr></thead>
+        <tbody><tr><td colspan="8" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
       </table>
     </div>`;
 
@@ -28,20 +37,27 @@ async function pageFuncionarios() {
 
   const tbody = view.querySelector('#table-funcionarios tbody');
   if (funcs.status === 'fulfilled' && funcs.value?.length) {
-    tbody.innerHTML = funcs.value.map(f => `<tr>
-      <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${f.id}</code></td>
-      <td style="font-weight:500">${f.nome}</td>
-      <td style="font-family:var(--font-mono);font-size:.85rem">${f.cpf ?? '—'}</td>
-      <td>${f.cargo ?? '—'}</td>
-      <td>${f.email ?? '—'}</td>
-      <td>${f.nomeEmpresa ?? f.empresa?.nome ?? '—'}</td>
-      <td><div style="display:flex;gap:.5rem">
-        <button class="btn btn-secondary btn-sm" onclick="editFuncionario(${f.id})">✏️ Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteFuncionario(${f.id},'${f.nome}')">🗑️</button>
-      </div></td>
-    </tr>`).join('');
+    tbody.innerHTML = funcs.value.map(f => `
+      <tr>
+        <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${f.id}</code></td>
+        <td style="font-weight:500">${f.nome}</td>
+        <td style="font-family:var(--font-mono);font-size:.85rem">${f.cpf ?? '—'}</td>
+        <td>${f.cargo ?? '—'}</td>
+        <td>${f.email ?? '—'}</td>
+        <td>${f.nomeEmpresa ?? f.empresa?.nome ?? '—'}</td>
+        <td>
+          <span class="badge ${f.ativo ? 'badge-success' : 'badge-danger'}">
+            ${f.ativo ? 'Ativo' : 'Inativo'}
+          </span>
+        </td>
+        <td><div style="display:flex;gap:.5rem">
+          <button class="btn btn-secondary btn-sm" onclick="editFuncionario(${f.id})">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteFuncionario(${f.id},'${f.nome}')">🗑️</button>
+        </div></td>
+      </tr>
+    `).join('');
   } else {
-    tbody.innerHTML = emptyRow(7, funcs.status === 'rejected' ? 'Erro ao carregar.' : 'Nenhum funcionário.');
+    tbody.innerHTML = emptyRow(8, funcs.status === 'rejected' ? 'Erro ao carregar.' : 'Nenhum funcionário.');
   }
 
   document.getElementById('func-search').addEventListener('input', e => filterTable('table-funcionarios', e.target.value));
@@ -95,6 +111,16 @@ function openFuncionarioModal(func, empresas) {
               ${empresas.map(e => `<option value="${e.id}" ${(func?.idEmpresa ?? func?.empresa?.id) == e.id ? 'selected' : ''}>${e.nome}</option>`).join('')}
             </select>
           </div>
+          
+          <!-- Campo Situação (ATIVO/INATIVO) -->
+          <div class="form-group">
+            <label>Situação</label>
+            <select class="form-control" name="ativo">
+              <option value="true" ${func?.ativo === true || func?.ativo === 'true' ? 'selected' : ''}>Ativo</option>
+              <option value="false" ${func?.ativo === false || func?.ativo === 'false' ? 'selected' : ''}>Inativo</option>
+            </select>
+          </div>
+          
           <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
             <button type="button" class="btn btn-secondary" onclick="Modal.close('${modalId}')">Cancelar</button>
             <button type="submit" class="btn btn-primary" id="btn-save-func">${isEdit ? 'Salvar' : 'Criar'}</button>
@@ -113,6 +139,12 @@ function openFuncionarioModal(func, empresas) {
     setLoading(btn, true);
     try {
       const data = formToObject(e.target);
+      // Converter ativo para boolean
+      data.ativo = data.ativo === 'true';
+      
+      // Converter salário para número
+      if (data.salario) data.salario = parseFloat(data.salario);
+      
       if (isEdit) await API.funcionarios.update(func.id, data);
       else await API.funcionarios.create(data);
       Toast.success(isEdit ? 'Funcionário atualizado!' : 'Funcionário criado!');

@@ -20,7 +20,14 @@ async function pageDashboard() {
       <h2 style="font-size:1rem;font-weight:600;margin-bottom:1rem">Últimas Vendas</h2>
       <div class="table-wrapper">
         <table id="dash-vendas-table">
-          <thead><tr><th>#</th><th>Cliente</th><th>Funcionário</th><th>Pagamento</th><th>Total</th><th>Data</th></tr></thead>
+          <thead><tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Funcionário</th>
+            <th>Pagamento</th>
+            <th>Total</th>
+            <th>Data</th>
+          </tr></thead>
           <tbody><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted)"><span class="spinner"></span></td></tr></tbody>
         </table>
       </div>
@@ -57,8 +64,9 @@ async function pageDashboard() {
         <td>${v.nomeFuncionario ?? v.idFuncionario ?? '—'}</td>
         <td><span class="badge badge-info">${v.metodoPagamento ?? '—'}</span></td>
         <td style="font-weight:600">${formatCurrency(v.total ?? v.valorTotal)}</td>
-        <td style="color:var(--text-secondary);font-size:.8125rem">${formatDate(v.dataVenda ?? v.data)}</td>
-      </tr>`).join('');
+        <td style="color:var(--text-secondary);font-size:.8125rem">${formatDateDisplay(v.dataVenda ?? v.data)}</td>
+      </tr>
+    `).join('');
   } catch {
     el.querySelector('#dash-vendas-table tbody').innerHTML = emptyRow(6, 'Erro ao carregar vendas.');
   }

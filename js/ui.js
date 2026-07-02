@@ -7,7 +7,6 @@ const Toast = {
   show(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
     if (!container) {
-      // Criar container se não existir
       const newContainer = document.createElement('div');
       newContainer.id = 'toast-container';
       newContainer.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:400px;width:100%;';
@@ -68,7 +67,6 @@ document.addEventListener('click', (e) => {
 function confirmDelete(name, onConfirm) {
   const modal = document.getElementById('modal-confirm');
   if (!modal) {
-    // Criar modal de confirmação se não existir
     const html = `
       <div class="modal-overlay hidden" id="modal-confirm">
         <div class="modal" style="max-width:400px">
@@ -100,20 +98,119 @@ function confirmDelete(name, onConfirm) {
 // ── Form helpers ─────────────────────────────
 function formToObject(formEl) {
   const data = {};
-  new FormData(formEl).forEach((v, k) => {
-    if (v !== '') {
-      // Tenta converter para número se for um número
-      const num = parseFloat(v);
-      data[k] = !isNaN(num) && v.trim() !== '' ? num : v;
+  const formData = new FormData(formEl);
+  
+  formData.forEach((v, k) => {
+    if (v !== '' && v !== null && v !== undefined) {
+      // Se for string, tenta converter para número
+      if (typeof v === 'string' && v.trim() !== '') {
+        const num = parseFloat(v);
+        // Se for um número válido, guarda como número
+        if (!isNaN(num) && v.trim() !== '') {
+          data[k] = num;
+        } else {
+          data[k] = v;
+        }
+      } else {
+        data[k] = v;
+      }
     }
   });
+  
   return data;
 }
 
+/**
+ * Converte uma data para o formato ISO com timezone (para envio ao backend)
+ * Exemplo: "2026-07-01T10:30:00-03:00"
+ */
+function formatDateToISO(dateStr) {
+  if (!dateStr) return null;
+  
+  try {
+    // Se for string, tenta criar um objeto Date
+    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+    
+    // Verifica se é uma data válida
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return null;
+    }
+    
+    // Formata para ISO com timezone local (-03:00 para Brasil)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    // Obtém o offset do timezone em horas
+    const offset = -date.getTimezoneOffset();
+    const offsetHours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
+    const offsetMinutes = String(Math.abs(offset) % 60).padStart(2, '0');
+    const offsetSign = offset >= 0 ? '+' : '-';
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
+  } catch (e) {
+    console.warn('Erro ao formatar data:', e);
+    return null;
+  }
+}
+
+/**
+ * Formata uma data para exibição no frontend
+ * Exemplo: "20/06/2026, 16:00"
+ */
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '—';
+  
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return dateStr; // Retorna a string original se não for uma data válida
+    }
+    
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
+/**
+ * Obtém a data atual formatada para envio ao backend
+ */
+function getCurrentDateTimeISO() {
+  return formatDateToISO(new Date());
+}
+
 function fillForm(formEl, obj) {
+  if (!obj) return;
   Object.entries(obj).forEach(([k, v]) => {
     const field = formEl.elements[k];
-    if (field) field.value = v ?? '';
+    if (field) {
+      // Se for campo de data, formata para o formato do input
+      if (field.type === 'datetime-local' && v) {
+        try {
+          const date = new Date(v);
+          if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            field.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            return;
+          }
+        } catch (e) {}
+      }
+      field.value = v ?? '';
+    }
   });
 }
 
@@ -121,6 +218,7 @@ function clearForm(formEl) { formEl.reset(); }
 
 // ── Loading state on buttons ──────────────────
 function setLoading(btn, loading) {
+  if (!btn) return;
   if (loading) {
     btn.disabled = true;
     btn._original = btn.innerHTML;
@@ -134,19 +232,6 @@ function setLoading(btn, loading) {
 // ── Format currency ───────────────────────────
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
-}
-
-// ── Format date ───────────────────────────────
-function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  try {
-    return new Date(dateStr).toLocaleString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  } catch {
-    return dateStr;
-  }
 }
 
 // ── Filter table rows ─────────────────────────
@@ -169,16 +254,51 @@ function emptyRow(colspan, msg = 'Nenhum registro encontrado.') {
   return `<tr><td colspan="${colspan}" style="text-align:center;color:var(--text-muted);padding:2rem">${msg}</td></tr>`;
 }
 
+
+/**
+ * Converte uma data para o formato ISO com timezone (para envio ao backend)
+ * Exemplo: "2026-07-01T10:30:00-03:00"
+ */
+/**
+ * Converte uma data para o formato ISO sem timezone (para envio ao backend)
+ * Exemplo: "2026-07-01T22:45:30"
+ */
+function formatDateToISO(dateStr) {
+  if (!dateStr) return null;
+  
+  try {
+    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+    
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return null;
+    }
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    // Retornar sem timezone (formato aceito por LocalDateTime)
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+  } catch (e) {
+    console.warn('Erro ao formatar data:', e);
+    return null;
+  }
+}
 // ── Exportar para uso global ──────────────────
 window.Toast = Toast;
 window.Modal = Modal;
 window.confirmDelete = confirmDelete;
 window.formToObject = formToObject;
+window.formatDateToISO = formatDateToISO;
+window.formatDateDisplay = formatDateDisplay;
+window.getCurrentDateTimeISO = getCurrentDateTimeISO;
 window.fillForm = fillForm;
 window.clearForm = clearForm;
 window.setLoading = setLoading;
 window.formatCurrency = formatCurrency;
-window.formatDate = formatDate;
 window.filterTable = filterTable;
 window.setupApiUrlModal = setupApiUrlModal;
 window.emptyRow = emptyRow;

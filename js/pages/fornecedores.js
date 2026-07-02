@@ -17,28 +17,43 @@ async function pageFornecedores() {
     </div>
     <div class="table-wrapper">
       <table id="table-fornecedores">
-        <thead><tr><th>#</th><th>Nome</th><th>CNPJ</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead>
-        <tbody><tr><td colspan="6" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
+        <thead><tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>CNPJ</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Situação</th>
+          <th>Ações</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
       </table>
     </div>`;
 
   try {
     const data = await API.fornecedores.list();
     const tbody = view.querySelector('#table-fornecedores tbody');
-    if (!data?.length) { tbody.innerHTML = emptyRow(6); return; }
-    tbody.innerHTML = data.map(f => `<tr>
-      <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${f.id}</code></td>
-      <td style="font-weight:500">${f.nome}</td>
-      <td style="font-family:var(--font-mono);font-size:.85rem">${f.cnpj ?? '—'}</td>
-      <td>${f.email ?? '—'}</td>
-      <td>${f.telefone ?? '—'}</td>
-      <td><div style="display:flex;gap:.5rem">
-        <button class="btn btn-secondary btn-sm" onclick="editFornecedor(${f.id})">✏️ Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteFornecedor(${f.id},'${f.nome}')">🗑️</button>
-      </div></td>
-    </tr>`).join('');
+    if (!data?.length) { tbody.innerHTML = emptyRow(7); return; }
+    tbody.innerHTML = data.map(f => `
+      <tr>
+        <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${f.id}</code></td>
+        <td style="font-weight:500">${f.nome}</td>
+        <td style="font-family:var(--font-mono);font-size:.85rem">${f.cnpj ?? '—'}</td>
+        <td>${f.email ?? '—'}</td>
+        <td>${f.telefone ?? '—'}</td>
+        <td>
+          <span class="badge ${f.ativo ? 'badge-success' : 'badge-danger'}">
+            ${f.ativo ? 'Ativo' : 'Inativo'}
+          </span>
+        </td>
+        <td><div style="display:flex;gap:.5rem">
+          <button class="btn btn-secondary btn-sm" onclick="editFornecedor(${f.id})">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteFornecedor(${f.id},'${f.nome}')">🗑️</button>
+        </div></td>
+      </tr>
+    `).join('');
   } catch {
-    view.querySelector('#table-fornecedores tbody').innerHTML = emptyRow(6, 'Erro ao carregar fornecedores.');
+    view.querySelector('#table-fornecedores tbody').innerHTML = emptyRow(7, 'Erro ao carregar fornecedores.');
   }
 
   document.getElementById('forn-search').addEventListener('input', e => filterTable('table-fornecedores', e.target.value));
@@ -83,6 +98,16 @@ function openFornecedorModal(forn) {
             <label>Endereço</label>
             <input class="form-control" name="endereco" value="${forn?.endereco ?? ''}">
           </div>
+          
+          <!-- Campo Situação (ATIVO/INATIVO) -->
+          <div class="form-group">
+            <label>Situação</label>
+            <select class="form-control" name="ativo">
+              <option value="true" ${forn?.ativo === true || forn?.ativo === 'true' ? 'selected' : ''}>Ativo</option>
+              <option value="false" ${forn?.ativo === false || forn?.ativo === 'false' ? 'selected' : ''}>Inativo</option>
+            </select>
+          </div>
+          
           <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
             <button type="button" class="btn btn-secondary" onclick="Modal.close('${modalId}')">Cancelar</button>
             <button type="submit" class="btn btn-primary" id="btn-save-forn">${isEdit ? 'Salvar' : 'Criar'}</button>
@@ -101,6 +126,9 @@ function openFornecedorModal(forn) {
     setLoading(btn, true);
     try {
       const data = formToObject(e.target);
+      // Converter ativo para boolean
+      data.ativo = data.ativo === 'true';
+      
       if (isEdit) await API.fornecedores.update(forn.id, data);
       else await API.fornecedores.create(data);
       Toast.success(isEdit ? 'Fornecedor atualizado!' : 'Fornecedor criado!');

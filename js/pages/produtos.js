@@ -17,8 +17,17 @@ async function pageProdutos() {
     </div>
     <div class="table-wrapper">
       <table id="table-produtos">
-        <thead><tr><th>#</th><th>Nome</th><th>Categoria</th><th>Fornecedor</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
-        <tbody><tr><td colspan="7" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
+        <thead><tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>Categoria</th>
+          <th>Fornecedor</th>
+          <th>Preço</th>
+          <th>Estoque</th>
+          <th>Situação</th>
+          <th>Ações</th>
+        </tr></thead>
+        <tbody><tr><td colspan="8" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
       </table>
     </div>`;
 
@@ -31,27 +40,34 @@ async function pageProdutos() {
 
   function renderTable(data) {
     const tbody = view.querySelector('#table-produtos tbody');
-    if (!data?.length) { tbody.innerHTML = emptyRow(7); return; }
+    if (!data?.length) { tbody.innerHTML = emptyRow(8); return; }
     tbody.innerHTML = data.map(p => {
       const stock = p.quantidadeEstoque ?? p.estoque ?? 0;
       const badge = stock === 0 ? 'badge-danger' : stock < 5 ? 'badge-warning' : 'badge-success';
-      return `<tr>
-        <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${p.id}</code></td>
-        <td style="font-weight:500">${p.nome}</td>
-        <td>${p.nomeCategoria ?? p.categoria?.nome ?? '—'}</td>
-        <td>${p.nomeFornecedor ?? p.fornecedor?.nome ?? '—'}</td>
-        <td style="font-weight:600">${formatCurrency(p.preco ?? p.precoUnitario)}</td>
-        <td><span class="badge ${badge}">${stock} un.</span></td>
-        <td><div style="display:flex;gap:.5rem">
-          <button class="btn btn-secondary btn-sm" onclick="editProduto(${p.id})">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteProduto(${p.id},'${p.nome}')">🗑️</button>
-        </div></td>
-      </tr>`;
+      return `
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${p.id}</code></td>
+          <td style="font-weight:500">${p.nome}</td>
+          <td>${p.nomeCategoria ?? p.categoria?.nome ?? '—'}</td>
+          <td>${p.nomeFornecedor ?? p.fornecedor?.nome ?? '—'}</td>
+          <td style="font-weight:600">${formatCurrency(p.preco ?? p.precoUnitario)}</td>
+          <td><span class="badge ${badge}">${stock} un.</span></td>
+          <td>
+            <span class="badge ${p.ativo ? 'badge-success' : 'badge-danger'}">
+              ${p.ativo ? 'Ativo' : 'Inativo'}
+            </span>
+          </td>
+          <td><div style="display:flex;gap:.5rem">
+            <button class="btn btn-secondary btn-sm" onclick="editProduto(${p.id})">✏️ Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProduto(${p.id},'${p.nome}')">🗑️</button>
+          </div></td>
+        </tr>
+      `;
     }).join('');
   }
 
   if (prods.status === 'fulfilled') renderTable(prods.value);
-  else view.querySelector('#table-produtos tbody').innerHTML = emptyRow(7, 'Erro ao carregar produtos.');
+  else view.querySelector('#table-produtos tbody').innerHTML = emptyRow(8, 'Erro ao carregar produtos.');
 
   document.getElementById('prod-search').addEventListener('input', e => filterTable('table-produtos', e.target.value));
   document.getElementById('btn-new-produto').addEventListener('click', () => openProdutoModal(null, categoriasList, fornecedoresList));
@@ -110,6 +126,16 @@ function openProdutoModal(produto, categorias, fornecedores) {
             <label>Descrição</label>
             <textarea class="form-control" name="descricao" rows="2">${produto?.descricao ?? ''}</textarea>
           </div>
+          
+          <!-- Campo Situação (ATIVO/INATIVO) -->
+          <div class="form-group">
+            <label>Situação</label>
+            <select class="form-control" name="ativo">
+              <option value="true" ${produto?.ativo === true || produto?.ativo === 'true' ? 'selected' : ''}>Ativo</option>
+              <option value="false" ${produto?.ativo === false || produto?.ativo === 'false' ? 'selected' : ''}>Inativo</option>
+            </select>
+          </div>
+          
           <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
             <button type="button" class="btn btn-secondary" onclick="Modal.close('${modalId}')">Cancelar</button>
             <button type="submit" class="btn btn-primary" id="btn-save-produto">${isEdit ? 'Salvar' : 'Criar'}</button>
@@ -128,6 +154,9 @@ function openProdutoModal(produto, categorias, fornecedores) {
     setLoading(btn, true);
     try {
       const data = formToObject(e.target);
+      // Converter ativo para boolean
+      data.ativo = data.ativo === 'true';
+      
       if (isEdit) await API.produtos.update(produto.id, data);
       else await API.produtos.create(data);
       Toast.success(isEdit ? 'Produto atualizado!' : 'Produto criado!');

@@ -17,28 +17,43 @@ async function pageClientes() {
     </div>
     <div class="table-wrapper">
       <table id="table-clientes">
-        <thead><tr><th>#</th><th>Nome</th><th>CPF/CNPJ</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead>
-        <tbody><tr><td colspan="6" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
+        <thead><tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>CPF/CNPJ</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Situação</th>
+          <th>Ações</th>
+        </tr></thead>
+        <tbody><tr><td colspan="7" style="text-align:center;padding:2rem"><span class="spinner"></span></td></tr></tbody>
       </table>
     </div>`;
 
   try {
     const data = await API.clientes.list();
     const tbody = view.querySelector('#table-clientes tbody');
-    if (!data?.length) { tbody.innerHTML = emptyRow(6); return; }
-    tbody.innerHTML = data.map(c => `<tr>
-      <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${c.id}</code></td>
-      <td style="font-weight:500">${c.nome}</td>
-      <td style="font-family:var(--font-mono);font-size:.85rem">${c.cpf ?? c.cnpj ?? '—'}</td>
-      <td>${c.email ?? '—'}</td>
-      <td>${c.telefone ?? '—'}</td>
-      <td><div style="display:flex;gap:.5rem">
-        <button class="btn btn-secondary btn-sm" onclick="editCliente(${c.id})">✏️ Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCliente(${c.id},'${c.nome}')">🗑️</button>
-      </div></td>
-    </tr>`).join('');
+    if (!data?.length) { tbody.innerHTML = emptyRow(7); return; }
+    tbody.innerHTML = data.map(c => `
+      <tr>
+        <td><code style="font-family:var(--font-mono);font-size:.8rem;color:var(--text-muted)">${c.id}</code></td>
+        <td style="font-weight:500">${c.nome}</td>
+        <td style="font-family:var(--font-mono);font-size:.85rem">${c.cpf ?? c.cnpj ?? '—'}</td>
+        <td>${c.email ?? '—'}</td>
+        <td>${c.telefone ?? '—'}</td>
+        <td>
+          <span class="badge ${c.ativo ? 'badge-success' : 'badge-danger'}">
+            ${c.ativo ? 'Ativo' : 'Inativo'}
+          </span>
+        </td>
+        <td><div style="display:flex;gap:.5rem">
+          <button class="btn btn-secondary btn-sm" onclick="editCliente(${c.id})">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCliente(${c.id},'${c.nome}')">🗑️</button>
+        </div></td>
+      </tr>
+    `).join('');
   } catch {
-    view.querySelector('#table-clientes tbody').innerHTML = emptyRow(6, 'Erro ao carregar clientes.');
+    view.querySelector('#table-clientes tbody').innerHTML = emptyRow(7, 'Erro ao carregar clientes.');
   }
 
   document.getElementById('cli-search').addEventListener('input', e => filterTable('table-clientes', e.target.value));
@@ -55,11 +70,11 @@ function openClienteModal(cliente) {
   const isEdit = !!cliente;
   const modalId = 'modal-cliente';
   const fields = [
-    ['nome',     'Nome *',    'text',  true],
-    ['cpf',      'CPF',       'text',  false],
-    ['email',    'Email',     'email', false],
-    ['telefone', 'Telefone',  'text',  false],
-    ['endereco', 'Endereço',  'text',  false],
+    ['nome',      'Nome *',     'text',   true],
+    ['cpf',       'CPF',        'text',   false],
+    ['email',     'Email',      'email',  false],
+    ['telefone',  'Telefone',   'text',   false],
+    ['endereco',  'Endereço',   'text',   false],
   ];
 
   const html = `
@@ -73,6 +88,16 @@ function openClienteModal(cliente) {
               <label>${label}</label>
               <input class="form-control" name="${name}" type="${type}" ${req ? 'required' : ''} value="${cliente?.[name] ?? ''}">
             </div>`).join('')}
+          
+          <!-- Campo Situação (ATIVO/INATIVO) -->
+          <div class="form-group">
+            <label>Situação</label>
+            <select class="form-control" name="ativo">
+              <option value="true" ${cliente?.ativo === true || cliente?.ativo === 'true' ? 'selected' : ''}>Ativo</option>
+              <option value="false" ${cliente?.ativo === false || cliente?.ativo === 'false' ? 'selected' : ''}>Inativo</option>
+            </select>
+          </div>
+          
           <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1rem">
             <button type="button" class="btn btn-secondary" onclick="Modal.close('${modalId}')">Cancelar</button>
             <button type="submit" class="btn btn-primary" id="btn-save-cliente">${isEdit ? 'Salvar' : 'Criar'}</button>
@@ -91,6 +116,9 @@ function openClienteModal(cliente) {
     setLoading(btn, true);
     try {
       const data = formToObject(e.target);
+      // Converter ativo para boolean
+      data.ativo = data.ativo === 'true';
+      
       if (isEdit) await API.clientes.update(cliente.id, data);
       else await API.clientes.create(data);
       Toast.success(isEdit ? 'Cliente atualizado!' : 'Cliente criado!');
